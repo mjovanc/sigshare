@@ -1,0 +1,9 @@
+[package]
+name = "shared-signals"
+description = "OpenID Shared Signals Framework (SSF), CAEP, RISC, and Security Event Tokens (SET) for Rust"
+keywords = ["caep", "security-event-token", "openid", "zero-trust", "risc"]
+categories = ["authentication", "web-programming"]
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
