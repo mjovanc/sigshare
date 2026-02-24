@@ -1,6 +1,6 @@
 [package]
 name = "sigshare"
-version = "0.1.0"
+version = "0.1.0-alpha.1"
 edition = "2024"
 rust-version = "1.85"
 description = "OpenID Shared Signals (SSF/CAEP/RISC) and Security Event Tokens for Rust"
