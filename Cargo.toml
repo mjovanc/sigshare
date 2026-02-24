@@ -1,9 +1,15 @@
 [package]
-name = "shared-signals"
-description = "OpenID Shared Signals Framework (SSF), CAEP, RISC, and Security Event Tokens (SET) for Rust"
-keywords = ["caep", "security-event-token", "openid", "zero-trust", "risc"]
-categories = ["authentication", "web-programming"]
+name = "sigshare"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
+description = "OpenID Shared Signals (SSF/CAEP/RISC) and Security Event Tokens for Rust"
+license = "MIT OR Apache-2.0"
+keywords = ["caep", "security-event-token", "openid", "zero-trust", "risc"]
+categories = ["authentication", "web-programming"]
+repository = "https://github.com/mjovanc/sigshare"
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
