@@ -26,10 +26,6 @@ The Shared Signals Framework lets identity and security systems notify each othe
 | [RISC 1.0](https://openid.net/specs/openid-risc-profile-specification-1_0.html) | Risk Incident Sharing — 14 event types for account security signals |
 | [SSF 1.0](https://openid.net/specs/openid-sharedsignals-framework-1_0.html) | Stream management, push/poll delivery, transmitter discovery |
 
-## Minimum Supported Rust Version
-
-Rust 1.85 (edition 2024)
-
 ## License
 
 Licensed under either of [Apache License, Version 2.0](LICENSE-APACHE) or [MIT License](LICENSE-MIT) at your option.
