@@ -1,0 +1,16 @@
+[toolchain]
+channel = "stable"
+components = [
+    "rust-analyzer",
+    "clippy",
+    "rustfmt",
+    "rust-src",
+    "rust-docs"
+]
+targets = [
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu"
+]
+profile = "default"

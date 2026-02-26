@@ -19,8 +19,7 @@ pub struct SecurityEventToken {
 
 impl Serialize for SecurityEventToken {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let wire =
-            SecurityEventTokenWire::try_from_token(self).map_err(serde::ser::Error::custom)?;
+        let wire = SecurityEventTokenWire::try_from_token(self).map_err(serde::ser::Error::custom)?;
         wire.serialize(serializer)
     }
 }
@@ -38,10 +37,7 @@ pub enum SsfEvent {
     Risc(crate::risc::RiscEvent),
     Verification(crate::ssf::VerificationEvent),
     StreamUpdated(crate::ssf::StreamUpdatedEvent),
-    Custom {
-        uri: String,
-        payload: serde_json::Value,
-    },
+    Custom { uri: String, payload: serde_json::Value },
 }
 
 impl SsfEvent {
@@ -105,6 +101,7 @@ impl SecurityEventTokenBuilder {
         self
     }
 
+    #[allow(clippy::should_implement_trait)]
     pub fn sub(mut self, sub: impl Into<String>) -> Self {
         self.sub = Some(sub.into());
         self
@@ -131,15 +128,9 @@ impl SecurityEventTokenBuilder {
     }
 
     pub fn build(self) -> Result<SecurityEventToken, SigshareError> {
-        let iss = self
-            .iss
-            .ok_or(SigshareError::MissingField { field: "iss" })?;
-        let iat = self
-            .iat
-            .ok_or(SigshareError::MissingField { field: "iat" })?;
-        let jti = self
-            .jti
-            .ok_or(SigshareError::MissingField { field: "jti" })?;
+        let iss = self.iss.ok_or(SigshareError::MissingField { field: "iss" })?;
+        let iat = self.iat.ok_or(SigshareError::MissingField { field: "iat" })?;
+        let jti = self.jti.ok_or(SigshareError::MissingField { field: "jti" })?;
 
         if self.events.is_empty() {
             return Err(SigshareError::MissingField { field: "events" });
@@ -148,9 +139,7 @@ impl SecurityEventTokenBuilder {
         let mut seen_uris = std::collections::HashSet::new();
         for event in &self.events {
             if !seen_uris.insert(event.uri()) {
-                return Err(SigshareError::DuplicateEventUri {
-                    uri: event.uri().to_owned(),
-                });
+                return Err(SigshareError::DuplicateEventUri { uri: event.uri().to_owned() });
             }
         }
 
@@ -173,11 +162,7 @@ struct SecurityEventTokenWire {
     iss: String,
     iat: i64,
     jti: String,
-    #[serde(
-        skip_serializing_if = "Option::is_none",
-        deserialize_with = "deserialize_aud",
-        default
-    )]
+    #[serde(skip_serializing_if = "Option::is_none", deserialize_with = "deserialize_aud", default)]
     aud: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     sub: Option<String>,
@@ -190,9 +175,7 @@ struct SecurityEventTokenWire {
     events: BTreeMap<String, serde_json::Value>,
 }
 
-fn deserialize_aud<'de, D: serde::Deserializer<'de>>(
-    deserializer: D,
-) -> Result<Option<Vec<String>>, D::Error> {
+fn deserialize_aud<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<Option<Vec<String>>, D::Error> {
     let value: Option<serde_json::Value> = Option::deserialize(deserializer)?;
     match value {
         None => Ok(None),
@@ -203,17 +186,13 @@ fn deserialize_aud<'de, D: serde::Deserializer<'de>>(
                 match item {
                     serde_json::Value::String(s) => result.push(s),
                     other => {
-                        return Err(serde::de::Error::custom(format!(
-                            "expected string in aud array, got {other}"
-                        )));
+                        return Err(serde::de::Error::custom(format!("expected string in aud array, got {other}")));
                     }
                 }
             }
             Ok(Some(result))
         }
-        Some(other) => Err(serde::de::Error::custom(format!(
-            "expected string or array for aud, got {other}"
-        ))),
+        Some(other) => Err(serde::de::Error::custom(format!("expected string or array for aud, got {other}"))),
     }
 }
 
@@ -224,11 +203,7 @@ impl SecurityEventTokenWire {
             events.insert(event.uri().to_owned(), event.to_payload()?);
         }
 
-        let sub_id = token
-            .sub_id
-            .as_ref()
-            .map(|s| serde_json::to_value(s))
-            .transpose()?;
+        let sub_id = token.sub_id.as_ref().map(serde_json::to_value).transpose()?;
 
         Ok(Self {
             iss: token.iss.clone(),
@@ -248,11 +223,11 @@ impl TryFrom<SecurityEventTokenWire> for SecurityEventToken {
     type Error = SigshareError;
 
     fn try_from(wire: SecurityEventTokenWire) -> Result<Self, Self::Error> {
-        let sub_id = wire
-            .sub_id
-            .map(serde_json::from_value)
-            .transpose()
-            .map_err(SigshareError::Serialization)?;
+        if wire.events.is_empty() {
+            return Err(SigshareError::MissingField { field: "events" });
+        }
+
+        let sub_id = wire.sub_id.map(serde_json::from_value).transpose().map_err(SigshareError::Serialization)?;
 
         let mut events = Vec::with_capacity(wire.events.len());
         for (uri, payload) in wire.events {
@@ -399,14 +374,10 @@ fn parse_ssf_event(uri: String, payload: serde_json::Value) -> Result<SsfEvent, 
 
     match uri.as_str() {
         crate::ssf::VERIFICATION_EVENT_URI => {
-            return Ok(SsfEvent::Verification(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
-            ));
+            return Ok(SsfEvent::Verification(serde_json::from_value(payload).map_err(SigshareError::Serialization)?));
         }
         crate::ssf::STREAM_UPDATED_EVENT_URI => {
-            return Ok(SsfEvent::StreamUpdated(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
-            ));
+            return Ok(SsfEvent::StreamUpdated(serde_json::from_value(payload).map_err(SigshareError::Serialization)?));
         }
         _ => {}
     }

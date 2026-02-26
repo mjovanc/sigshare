@@ -34,7 +34,7 @@ The Shared Signals Framework lets identity and security systems notify each othe
 - [x] `aud` handles both single string and array (per JWT/RFC 8417)
 - [x] Wire format: `events` as `Map<URI, Object>` with BTreeMap for deterministic ordering
 - [x] Builder with validation (required fields, duplicate event URI rejection)
-- [x] All 10 subject identifier formats (RFC 9493 + SSF extensions)
+- [x] All 11 subject identifier formats (RFC 9493 + SSF extensions)
 - [x] Complex subjects with named members (`user`, `device`, `session`, `tenant`, etc.)
 - [x] All 8 CAEP event types with spec-correct field types and casing
 - [x] All 14 RISC event types with spec-correct field names

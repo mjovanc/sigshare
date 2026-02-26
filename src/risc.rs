@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum AccountDisabledReason {
     Hijacking,
@@ -37,9 +38,9 @@ pub struct CredentialCompromise {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_timestamp: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason_admin: Option<String>,
+    pub reason_admin: Option<BTreeMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason_user: Option<String>,
+    pub reason_user: Option<BTreeMap<String, String>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -66,43 +67,32 @@ pub struct SessionsRevoked {}
 pub const ACCOUNT_CREDENTIAL_CHANGE_REQUIRED_URI: &str =
     "https://schemas.openid.net/secevent/risc/event-type/account-credential-change-required";
 
-pub const ACCOUNT_PURGED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/account-purged";
+pub const ACCOUNT_PURGED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/account-purged";
 
-pub const ACCOUNT_DISABLED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/account-disabled";
+pub const ACCOUNT_DISABLED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/account-disabled";
 
-pub const ACCOUNT_ENABLED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/account-enabled";
+pub const ACCOUNT_ENABLED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/account-enabled";
 
-pub const IDENTIFIER_CHANGED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/identifier-changed";
+pub const IDENTIFIER_CHANGED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/identifier-changed";
 
-pub const IDENTIFIER_RECYCLED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/identifier-recycled";
+pub const IDENTIFIER_RECYCLED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/identifier-recycled";
 
-pub const CREDENTIAL_COMPROMISE_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/credential-compromise";
+pub const CREDENTIAL_COMPROMISE_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/credential-compromise";
 
 pub const OPT_IN_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/opt-in";
 
-pub const OPT_OUT_INITIATED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/opt-out-initiated";
+pub const OPT_OUT_INITIATED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/opt-out-initiated";
 
-pub const OPT_OUT_CANCELLED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/opt-out-cancelled";
+pub const OPT_OUT_CANCELLED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/opt-out-cancelled";
 
-pub const OPT_OUT_EFFECTIVE_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/opt-out-effective";
+pub const OPT_OUT_EFFECTIVE_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/opt-out-effective";
 
-pub const RECOVERY_ACTIVATED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/recovery-activated";
+pub const RECOVERY_ACTIVATED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/recovery-activated";
 
 pub const RECOVERY_INFORMATION_CHANGED_URI: &str =
     "https://schemas.openid.net/secevent/risc/event-type/recovery-information-changed";
 
-pub const SESSIONS_REVOKED_URI: &str =
-    "https://schemas.openid.net/secevent/risc/event-type/sessions-revoked";
+pub const SESSIONS_REVOKED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/sessions-revoked";
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum RiscEvent {

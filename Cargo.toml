@@ -2,12 +2,18 @@
 name = "sigshare"
 version = "0.1.0-alpha.1"
 edition = "2024"
+authors = ["Marcus Cvjeticanin <mjovanc@icloud.com>"]
 rust-version = "1.85"
 description = "OpenID Shared Signals (SSF/CAEP/RISC) and Security Event Tokens for Rust"
 license = "MIT OR Apache-2.0"
 keywords = ["caep", "security-event-token", "openid", "zero-trust", "risc"]
 categories = ["authentication", "web-programming"]
 repository = "https://github.com/mjovanc/sigshare"
+homepage = "https://github.com/mjovanc/sigshare"
+readme = "README.md"
+
+[badges]
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

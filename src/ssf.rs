@@ -1,16 +1,14 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::subject::SubjectIdentifier;
 
 pub const PUSH_DELIVERY_METHOD: &str = "urn:ietf:rfc:8935";
 pub const POLL_DELIVERY_METHOD: &str = "urn:ietf:rfc:8936";
 
-pub const VERIFICATION_EVENT_URI: &str =
-    "https://schemas.openid.net/secevent/ssf/event-type/verification";
+pub const VERIFICATION_EVENT_URI: &str = "https://schemas.openid.net/secevent/ssf/event-type/verification";
 
-pub const STREAM_UPDATED_EVENT_URI: &str =
-    "https://schemas.openid.net/secevent/ssf/event-type/stream-updated";
+pub const STREAM_UPDATED_EVENT_URI: &str = "https://schemas.openid.net/secevent/ssf/event-type/stream-updated";
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method")]
@@ -28,7 +26,7 @@ pub enum DeliveryConfig {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StreamStatus {
     Enabled,
@@ -108,8 +106,6 @@ pub struct StreamUpdatedEvent {
     pub status: StreamStatus,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject: Option<SubjectIdentifier>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -119,12 +115,12 @@ pub struct SetError {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct PollRequest {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ack: Vec<String>,
-    #[serde(rename = "setErrs", default, skip_serializing_if = "HashMap::is_empty")]
-    pub set_errs: HashMap<String, SetError>,
+    #[serde(rename = "setErrs", default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub set_errs: BTreeMap<String, SetError>,
     #[serde(rename = "returnImmediately", skip_serializing_if = "Option::is_none")]
     pub return_immediately: Option<bool>,
     #[serde(rename = "maxEvents", skip_serializing_if = "Option::is_none")]
@@ -133,7 +129,7 @@ pub struct PollRequest {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct PollResponse {
-    pub sets: HashMap<String, String>,
+    pub sets: BTreeMap<String, String>,
     #[serde(rename = "moreAvailable", skip_serializing_if = "Option::is_none")]
     pub more_available: Option<bool>,
 }
@@ -143,7 +139,7 @@ pub struct AuthorizationScheme {
     pub spec_urn: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DefaultSubjects {
     #[serde(rename = "ALL")]
     All,

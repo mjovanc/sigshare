@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub use crate::subject::CredentialType;
 
@@ -8,14 +8,14 @@ pub struct CaepCommon {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub initiating_entity: Option<InitiatingEntity>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason_admin: Option<HashMap<String, String>>,
+    pub reason_admin: Option<BTreeMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason_user: Option<HashMap<String, String>>,
+    pub reason_user: Option<BTreeMap<String, String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event_timestamp: Option<i64>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum InitiatingEntity {
     Admin,
@@ -24,7 +24,7 @@ pub enum InitiatingEntity {
     System,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CredentialChangeType {
     Create,
@@ -33,7 +33,7 @@ pub enum CredentialChangeType {
     Delete,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ComplianceStatus {
     #[serde(rename = "compliant")]
     Compliant,
@@ -41,14 +41,14 @@ pub enum ComplianceStatus {
     NotCompliant,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ChangeDirection {
     Increase,
     Decrease,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RiskLevel {
     #[serde(rename = "HIGH")]
     High,
@@ -58,7 +58,7 @@ pub enum RiskLevel {
     Low,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RiskPrincipal {
     #[serde(rename = "USER")]
     User,
@@ -159,14 +159,11 @@ pub struct SessionPresented {
     pub ext_id: Option<String>,
 }
 
-pub const SESSION_REVOKED_URI: &str =
-    "https://schemas.openid.net/secevent/caep/event-type/session-revoked";
+pub const SESSION_REVOKED_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/session-revoked";
 
-pub const CREDENTIAL_CHANGE_URI: &str =
-    "https://schemas.openid.net/secevent/caep/event-type/credential-change";
+pub const CREDENTIAL_CHANGE_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/credential-change";
 
-pub const TOKEN_CLAIMS_CHANGE_URI: &str =
-    "https://schemas.openid.net/secevent/caep/event-type/token-claims-change";
+pub const TOKEN_CLAIMS_CHANGE_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/token-claims-change";
 
 pub const DEVICE_COMPLIANCE_CHANGE_URI: &str =
     "https://schemas.openid.net/secevent/caep/event-type/device-compliance-change";
@@ -174,14 +171,11 @@ pub const DEVICE_COMPLIANCE_CHANGE_URI: &str =
 pub const ASSURANCE_LEVEL_CHANGE_URI: &str =
     "https://schemas.openid.net/secevent/caep/event-type/assurance-level-change";
 
-pub const RISK_LEVEL_CHANGE_URI: &str =
-    "https://schemas.openid.net/secevent/caep/event-type/risk-level-change";
+pub const RISK_LEVEL_CHANGE_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/risk-level-change";
 
-pub const SESSION_ESTABLISHED_URI: &str =
-    "https://schemas.openid.net/secevent/caep/event-type/session-established";
+pub const SESSION_ESTABLISHED_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/session-established";
 
-pub const SESSION_PRESENTED_URI: &str =
-    "https://schemas.openid.net/secevent/caep/event-type/session-presented";
+pub const SESSION_PRESENTED_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/session-presented";
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum CaepEvent {

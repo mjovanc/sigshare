@@ -8,9 +8,6 @@ pub enum SigshareError {
     #[error("serialization error: {0}")]
     Serialization(#[from] serde_json::Error),
 
-    #[error("unknown event URI: {uri}")]
-    UnknownEventUri { uri: String },
-
     #[error("duplicate event URI: {uri}")]
     DuplicateEventUri { uri: String },
 }

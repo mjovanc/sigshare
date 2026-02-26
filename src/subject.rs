@@ -25,18 +25,13 @@ pub enum SubjectIdentifier {
     Uri { uri: String },
 
     #[serde(rename = "aliases")]
-    Aliases {
-        identifiers: Vec<Box<SubjectIdentifier>>,
-    },
+    Aliases { identifiers: Vec<Box<SubjectIdentifier>> },
 
     #[serde(rename = "jwt_id")]
     JwtId { iss: String, jti: String },
 
     #[serde(rename = "saml_assertion_id")]
-    SamlAssertionId {
-        issuer: String,
-        assertion_id: String,
-    },
+    SamlAssertionId { issuer: String, assertion_id: String },
 
     #[serde(rename = "complex")]
     Complex(Box<ComplexSubject>),
@@ -60,7 +55,7 @@ pub struct ComplexSubject {
     pub group: Option<Box<SubjectIdentifier>>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum CredentialType {
     #[serde(rename = "password")]
     Password,
