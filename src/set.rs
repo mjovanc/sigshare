@@ -52,7 +52,8 @@ pub struct SecurityEventToken {
 
 impl Serialize for SecurityEventToken {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let wire = SecurityEventTokenWire::try_from_token(self).map_err(serde::ser::Error::custom)?;
+        let wire =
+            SecurityEventTokenWire::try_from_token(self).map_err(serde::ser::Error::custom)?;
         wire.serialize(serializer)
     }
 }
@@ -255,7 +256,11 @@ struct SecurityEventTokenWire {
     iss: String,
     iat: i64,
     jti: String,
-    #[serde(skip_serializing_if = "Option::is_none", deserialize_with = "deserialize_aud", default)]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "deserialize_aud",
+        default
+    )]
     aud: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     sub: Option<String>,
@@ -268,7 +273,9 @@ struct SecurityEventTokenWire {
     events: BTreeMap<String, serde_json::Value>,
 }
 
-fn deserialize_aud<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<Option<Vec<String>>, D::Error> {
+fn deserialize_aud<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<Vec<String>>, D::Error> {
     let value: Option<serde_json::Value> = Option::deserialize(deserializer)?;
     match value {
         None => Ok(None),
@@ -279,13 +286,17 @@ fn deserialize_aud<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<
                 match item {
                     serde_json::Value::String(s) => result.push(s),
                     other => {
-                        return Err(serde::de::Error::custom(format!("expected string in aud array, got {other}")));
+                        return Err(serde::de::Error::custom(format!(
+                            "expected string in aud array, got {other}"
+                        )));
                     }
                 }
             }
             Ok(Some(result))
         }
-        Some(other) => Err(serde::de::Error::custom(format!("expected string or array for aud, got {other}"))),
+        Some(other) => {
+            Err(serde::de::Error::custom(format!("expected string or array for aud, got {other}")))
+        }
     }
 }
 
@@ -320,7 +331,11 @@ impl TryFrom<SecurityEventTokenWire> for SecurityEventToken {
             return Err(SigshareError::MissingField { field: "events" });
         }
 
-        let sub_id = wire.sub_id.map(serde_json::from_value).transpose().map_err(SigshareError::Serialization)?;
+        let sub_id = wire
+            .sub_id
+            .map(serde_json::from_value)
+            .transpose()
+            .map_err(SigshareError::Serialization)?;
 
         let mut events = Vec::with_capacity(wire.events.len());
         for (uri, payload) in wire.events {
@@ -462,10 +477,14 @@ fn parse_ssf_event(uri: String, payload: serde_json::Value) -> Result<SsfEvent, 
 
     match uri.as_str() {
         crate::ssf::VERIFICATION_EVENT_URI => {
-            return Ok(SsfEvent::Verification(serde_json::from_value(payload).map_err(SigshareError::Serialization)?));
+            return Ok(SsfEvent::Verification(
+                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+            ));
         }
         crate::ssf::STREAM_UPDATED_EVENT_URI => {
-            return Ok(SsfEvent::StreamUpdated(serde_json::from_value(payload).map_err(SigshareError::Serialization)?));
+            return Ok(SsfEvent::StreamUpdated(
+                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+            ));
         }
         _ => {}
     }

@@ -60,12 +60,14 @@ pub const POLL_DELIVERY_METHOD: &str = "urn:ietf:rfc:8936";
 /// Schema URI for the SSF verification event ([SSF §8.1.4]).
 ///
 /// [SSF §8.1.4]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.4
-pub const VERIFICATION_EVENT_URI: &str = "https://schemas.openid.net/secevent/ssf/event-type/verification";
+pub const VERIFICATION_EVENT_URI: &str =
+    "https://schemas.openid.net/secevent/ssf/event-type/verification";
 
 /// Schema URI for the SSF stream-updated event ([SSF §8.1.5]).
 ///
 /// [SSF §8.1.5]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.5
-pub const STREAM_UPDATED_EVENT_URI: &str = "https://schemas.openid.net/secevent/ssf/event-type/stream-updated";
+pub const STREAM_UPDATED_EVENT_URI: &str =
+    "https://schemas.openid.net/secevent/ssf/event-type/stream-updated";
 
 /// Delivery method configuration for a stream ([SSF §6.1]).
 ///

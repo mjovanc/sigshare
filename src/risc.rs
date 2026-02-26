@@ -187,37 +187,47 @@ pub const ACCOUNT_CREDENTIAL_CHANGE_REQUIRED_URI: &str =
     "https://schemas.openid.net/secevent/risc/event-type/account-credential-change-required";
 
 /// Schema URI for the [`AccountPurged`] event.
-pub const ACCOUNT_PURGED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/account-purged";
+pub const ACCOUNT_PURGED_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/account-purged";
 
 /// Schema URI for the [`AccountDisabled`] event.
-pub const ACCOUNT_DISABLED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/account-disabled";
+pub const ACCOUNT_DISABLED_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/account-disabled";
 
 /// Schema URI for the [`AccountEnabled`] event.
-pub const ACCOUNT_ENABLED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/account-enabled";
+pub const ACCOUNT_ENABLED_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/account-enabled";
 
 /// Schema URI for the [`IdentifierChanged`] event.
-pub const IDENTIFIER_CHANGED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/identifier-changed";
+pub const IDENTIFIER_CHANGED_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/identifier-changed";
 
 /// Schema URI for the [`IdentifierRecycled`] event.
-pub const IDENTIFIER_RECYCLED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/identifier-recycled";
+pub const IDENTIFIER_RECYCLED_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/identifier-recycled";
 
 /// Schema URI for the [`CredentialCompromise`] event.
-pub const CREDENTIAL_COMPROMISE_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/credential-compromise";
+pub const CREDENTIAL_COMPROMISE_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/credential-compromise";
 
 /// Schema URI for the [`OptIn`] event.
 pub const OPT_IN_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/opt-in";
 
 /// Schema URI for the [`OptOutInitiated`] event.
-pub const OPT_OUT_INITIATED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/opt-out-initiated";
+pub const OPT_OUT_INITIATED_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/opt-out-initiated";
 
 /// Schema URI for the [`OptOutCancelled`] event.
-pub const OPT_OUT_CANCELLED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/opt-out-cancelled";
+pub const OPT_OUT_CANCELLED_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/opt-out-cancelled";
 
 /// Schema URI for the [`OptOutEffective`] event.
-pub const OPT_OUT_EFFECTIVE_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/opt-out-effective";
+pub const OPT_OUT_EFFECTIVE_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/opt-out-effective";
 
 /// Schema URI for the [`RecoveryActivated`] event.
-pub const RECOVERY_ACTIVATED_URI: &str = "https://schemas.openid.net/secevent/risc/event-type/recovery-activated";
+pub const RECOVERY_ACTIVATED_URI: &str =
+    "https://schemas.openid.net/secevent/risc/event-type/recovery-activated";
 
 /// Schema URI for the [`RecoveryInformationChanged`] event.
 pub const RECOVERY_INFORMATION_CHANGED_URI: &str =

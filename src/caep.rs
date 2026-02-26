@@ -315,13 +315,16 @@ pub struct SessionPresented {
 }
 
 /// Schema URI for the [`SessionRevoked`] event.
-pub const SESSION_REVOKED_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/session-revoked";
+pub const SESSION_REVOKED_URI: &str =
+    "https://schemas.openid.net/secevent/caep/event-type/session-revoked";
 
 /// Schema URI for the [`CredentialChange`] event.
-pub const CREDENTIAL_CHANGE_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/credential-change";
+pub const CREDENTIAL_CHANGE_URI: &str =
+    "https://schemas.openid.net/secevent/caep/event-type/credential-change";
 
 /// Schema URI for the [`TokenClaimsChange`] event.
-pub const TOKEN_CLAIMS_CHANGE_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/token-claims-change";
+pub const TOKEN_CLAIMS_CHANGE_URI: &str =
+    "https://schemas.openid.net/secevent/caep/event-type/token-claims-change";
 
 /// Schema URI for the [`DeviceComplianceChange`] event.
 pub const DEVICE_COMPLIANCE_CHANGE_URI: &str =
@@ -332,13 +335,16 @@ pub const ASSURANCE_LEVEL_CHANGE_URI: &str =
     "https://schemas.openid.net/secevent/caep/event-type/assurance-level-change";
 
 /// Schema URI for the [`RiskLevelChange`] event.
-pub const RISK_LEVEL_CHANGE_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/risk-level-change";
+pub const RISK_LEVEL_CHANGE_URI: &str =
+    "https://schemas.openid.net/secevent/caep/event-type/risk-level-change";
 
 /// Schema URI for the [`SessionEstablished`] event.
-pub const SESSION_ESTABLISHED_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/session-established";
+pub const SESSION_ESTABLISHED_URI: &str =
+    "https://schemas.openid.net/secevent/caep/event-type/session-established";
 
 /// Schema URI for the [`SessionPresented`] event.
-pub const SESSION_PRESENTED_URI: &str = "https://schemas.openid.net/secevent/caep/event-type/session-presented";
+pub const SESSION_PRESENTED_URI: &str =
+    "https://schemas.openid.net/secevent/caep/event-type/session-presented";
 
 /// A typed CAEP event ([CAEP 1.0]).
 ///
