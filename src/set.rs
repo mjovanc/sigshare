@@ -1,19 +1,52 @@
+//! Security Event Token (SET) per [RFC 8417](https://www.rfc-editor.org/rfc/rfc8417).
+//!
+//! This module provides [`SecurityEventToken`] for representing SETs,
+//! [`SecurityEventTokenBuilder`] for constructing them with validation, and
+//! [`SsfEvent`] as a unified wrapper for CAEP, RISC, SSF, and custom events.
+//!
+//! # Wire format
+//!
+//! The `events` claim is serialized as `Map<URI, Object>` using a [`BTreeMap`]
+//! for deterministic key ordering. The `aud` claim accepts both a single JSON
+//! string and a JSON array on deserialization, per RFC 7519.
+
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 use crate::error::SigshareError;
 use crate::subject::SubjectIdentifier;
 
+/// A Security Event Token as defined by [RFC 8417](https://www.rfc-editor.org/rfc/rfc8417).
+///
+/// Contains the standard JWT/SET claims (`iss`, `iat`, `jti`, etc.) plus
+/// the `events` payload carrying one or more [`SsfEvent`] values. The `sub_id`
+/// claim is an [RFC 9493](https://www.rfc-editor.org/rfc/rfc9493) extension
+/// used by the Shared Signals Framework to identify the event subject.
+///
+/// Use [`SecurityEventTokenBuilder`] to construct instances with validation.
+/// Implements `Serialize` and `Deserialize` for spec-compliant JSON wire format.
 #[derive(Debug, Clone, PartialEq)]
 pub struct SecurityEventToken {
+    /// Issuer identifier (REQUIRED per RFC 8417).
     pub iss: String,
+    /// Issued-at timestamp as seconds since Unix epoch (REQUIRED per RFC 8417).
     pub iat: i64,
+    /// JWT ID — a unique identifier for this token (REQUIRED per RFC 8417).
     pub jti: String,
+    /// Audience — one or more intended recipients (RECOMMENDED per RFC 8417).
+    /// Deserialization accepts both a single JSON string and a JSON array.
     pub aud: Option<Vec<String>>,
+    /// JWT subject claim (OPTIONAL). Note: SSF 1.0 specifies that `sub`
+    /// MUST NOT be present in SETs containing SSF events; use `sub_id` instead.
     pub sub: Option<String>,
+    /// Transaction identifier for correlating related events (OPTIONAL per RFC 8417).
     pub txn: Option<String>,
+    /// Time of event — when the security event occurred, as seconds since Unix epoch
+    /// (OPTIONAL per RFC 8417).
     pub toe: Option<i64>,
+    /// Subject identifier per [RFC 9493](https://www.rfc-editor.org/rfc/rfc9493) (OPTIONAL).
     pub sub_id: Option<SubjectIdentifier>,
+    /// The security events carried by this token. RFC 8417 requires at least one event.
     pub events: Vec<SsfEvent>,
 }
 
@@ -31,16 +64,33 @@ impl<'de> Deserialize<'de> for SecurityEventToken {
     }
 }
 
+/// A single event within a Security Event Token.
+///
+/// Wraps CAEP, RISC, SSF management events, or arbitrary custom events.
+/// Each variant maps to a specific event type URI in the SET `events` object.
 #[derive(Debug, Clone, PartialEq)]
 pub enum SsfEvent {
+    /// A [CAEP 1.0](https://openid.net/specs/openid-caep-1_0.html) event
+    /// (session, credential, compliance, assurance, or risk).
     Caep(crate::caep::CaepEvent),
+    /// A [RISC 1.0](https://openid.net/specs/openid-risc-profile-specification-1_0.html) event
+    /// (account, identifier, credential, recovery, or opt-in/out).
     Risc(crate::risc::RiscEvent),
+    /// An SSF verification event used to confirm stream liveness.
     Verification(crate::ssf::VerificationEvent),
+    /// An SSF stream-updated event indicating a stream status change.
     StreamUpdated(crate::ssf::StreamUpdatedEvent),
-    Custom { uri: String, payload: serde_json::Value },
+    /// A custom or unrecognized event type, preserved as raw JSON.
+    Custom {
+        /// The event type URI.
+        uri: String,
+        /// The event payload as raw JSON.
+        payload: serde_json::Value,
+    },
 }
 
 impl SsfEvent {
+    /// Returns the event type URI for this event.
     pub fn uri(&self) -> &str {
         match self {
             Self::Caep(e) => e.uri(),
@@ -51,6 +101,7 @@ impl SsfEvent {
         }
     }
 
+    /// Serializes the event payload to a JSON value.
     pub fn to_payload(&self) -> Result<serde_json::Value, SigshareError> {
         let value = match self {
             Self::Caep(e) => e.to_payload()?,
@@ -63,6 +114,28 @@ impl SsfEvent {
     }
 }
 
+/// Builder for [`SecurityEventToken`] with validation.
+///
+/// Validates that all required fields (`iss`, `iat`, `jti`) are present,
+/// that at least one event is provided, and that no two events share the
+/// same event type URI.
+///
+/// # Example
+///
+/// ```
+/// use sigshare::set::{SecurityEventTokenBuilder, SsfEvent};
+/// use sigshare::caep::{CaepEvent, SessionRevoked, CaepCommon};
+///
+/// let token = SecurityEventTokenBuilder::new()
+///     .iss("https://idp.example.com")
+///     .iat(1_700_000_000)
+///     .jti("evt-001")
+///     .event(SsfEvent::Caep(CaepEvent::SessionRevoked(SessionRevoked {
+///         common: CaepCommon::default(),
+///     })))
+///     .build()
+///     .unwrap();
+/// ```
 #[derive(Debug, Default)]
 pub struct SecurityEventTokenBuilder {
     iss: Option<String>,
@@ -77,56 +150,76 @@ pub struct SecurityEventTokenBuilder {
 }
 
 impl SecurityEventTokenBuilder {
+    /// Creates a new empty builder.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Sets the issuer (`iss`) claim. Required.
     pub fn iss(mut self, iss: impl Into<String>) -> Self {
         self.iss = Some(iss.into());
         self
     }
 
+    /// Sets the issued-at (`iat`) timestamp as seconds since Unix epoch. Required.
     pub fn iat(mut self, iat: i64) -> Self {
         self.iat = Some(iat);
         self
     }
 
+    /// Sets the JWT ID (`jti`) claim. Required.
     pub fn jti(mut self, jti: impl Into<String>) -> Self {
         self.jti = Some(jti.into());
         self
     }
 
+    /// Sets the audience (`aud`) claim.
     pub fn aud(mut self, aud: Vec<String>) -> Self {
         self.aud = Some(aud);
         self
     }
 
+    /// Sets the JWT subject (`sub`) claim.
+    ///
+    /// Note: SSF 1.0 specifies that `sub` MUST NOT be present in SETs
+    /// containing SSF events. Prefer [`sub_id`](Self::sub_id) instead.
     #[allow(clippy::should_implement_trait)]
     pub fn sub(mut self, sub: impl Into<String>) -> Self {
         self.sub = Some(sub.into());
         self
     }
 
+    /// Sets the transaction identifier (`txn`) claim.
     pub fn txn(mut self, txn: impl Into<String>) -> Self {
         self.txn = Some(txn.into());
         self
     }
 
+    /// Sets the time-of-event (`toe`) claim as seconds since Unix epoch.
     pub fn toe(mut self, toe: i64) -> Self {
         self.toe = Some(toe);
         self
     }
 
+    /// Sets the subject identifier (`sub_id`) per RFC 9493.
     pub fn sub_id(mut self, sub_id: SubjectIdentifier) -> Self {
         self.sub_id = Some(sub_id);
         self
     }
 
+    /// Adds an event to the token.
     pub fn event(mut self, event: SsfEvent) -> Self {
         self.events.push(event);
         self
     }
 
+    /// Builds the [`SecurityEventToken`], validating all required fields.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SigshareError::MissingField`] if `iss`, `iat`, `jti`, or
+    /// `events` is missing. Returns [`SigshareError::DuplicateEventUri`] if
+    /// two events share the same event type URI.
     pub fn build(self) -> Result<SecurityEventToken, SigshareError> {
         let iss = self.iss.ok_or(SigshareError::MissingField { field: "iss" })?;
         let iat = self.iat.ok_or(SigshareError::MissingField { field: "iat" })?;
@@ -361,11 +454,6 @@ fn parse_ssf_event(uri: String, payload: serde_json::Value) -> Result<SsfEvent, 
         }
         RECOVERY_INFORMATION_CHANGED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::RecoveryInformationChanged(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
-            )));
-        }
-        SESSIONS_REVOKED_URI => {
-            return Ok(SsfEvent::Risc(RiscEvent::SessionsRevoked(
                 serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
             )));
         }
