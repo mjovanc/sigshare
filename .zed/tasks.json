@@ -1,0 +1,37 @@
+[
+  {
+    "label": "test",
+    "command": "cargo test",
+    "use_new_terminal": false
+  },
+  {
+    "label": "clippy",
+    "command": "cargo clippy -- -D warnings",
+    "use_new_terminal": false
+  },
+  {
+    "label": "doc: build",
+    "command": "cargo doc --no-deps",
+    "use_new_terminal": false
+  },
+  {
+    "label": "doc: open",
+    "command": "cargo doc --no-deps --open",
+    "use_new_terminal": false
+  },
+  {
+    "label": "fmt: check",
+    "command": "cargo fmt --check",
+    "use_new_terminal": false
+  },
+  {
+    "label": "fmt: fix",
+    "command": "cargo fmt",
+    "use_new_terminal": false
+  },
+  {
+    "label": "check: all",
+    "command": "cargo fmt --check && cargo clippy -- -D warnings && cargo test && cargo doc --no-deps",
+    "use_new_terminal": false
+  }
+]
