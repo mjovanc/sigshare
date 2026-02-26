@@ -1,5 +1,9 @@
 # sigshare
 
+![build](https://img.shields.io/github/actions/workflow/status/mjovanc/sigshare/ci.yml?branch=master)
+![crates.io](https://img.shields.io/crates/v/sigshare.svg)
+[![documentation](https://img.shields.io/badge/docs-sigshare-blue?logo=rust)](https://docs.rs/sigshare/latest/sigshare/)
+
 A complete Rust SDK for the [OpenID Shared Signals Framework](https://openid.net/specs/openid-sharedsignals-framework-1_0.html) (SSF) — build transmitters and receivers that exchange security events in real time across identity providers, relying parties, and security infrastructure.
 
 Event construction, stream management, push and poll delivery, JWT signing and verification, and spec-compliant wire format serialization — all in one crate.
