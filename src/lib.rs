@@ -54,17 +54,94 @@
 //! [caep-spec]: https://openid.net/specs/openid-caep-1_0.html
 //! [risc-spec]: https://openid.net/specs/openid-risc-profile-specification-1_0.html
 
-pub mod error;
-pub use error::SigshareError;
-
+mod cache;
 pub mod caep;
+pub mod error;
 pub mod risc;
 pub mod set;
 pub mod ssf;
 pub mod subject;
 
 pub use caep::CaepEvent;
+pub use error::{Error, SigshareError};
 pub use risc::RiscEvent;
 pub use set::{SecurityEventToken, SecurityEventTokenBuilder, SsfEvent};
 pub use ssf::{StreamConfiguration, StreamStatus, TransmitterConfiguration};
 pub use subject::{CredentialType, SubjectIdentifier};
+
+pub struct HttpResponse {
+    pub status: u16,
+    pub body: Vec<u8>,
+}
+
+#[async_trait::async_trait]
+pub trait HttpClient: Send + Sync {
+    async fn get(&self, url: &str) -> Result<HttpResponse, Error>;
+
+    async fn post(&self, url: &str, body: Vec<u8>) -> Result<HttpResponse, Error>;
+
+    async fn put(&self, url: &str, body: Vec<u8>) -> Result<HttpResponse, Error>;
+
+    async fn delete(&self, url: &str) -> Result<HttpResponse, Error>;
+}
+
+#[cfg(feature = "reqwest")]
+pub(crate) struct ReqwestClient {
+    inner: reqwest::Client,
+}
+
+#[cfg(feature = "reqwest")]
+impl ReqwestClient {
+    pub fn new(timeout: std::time::Duration) -> Result<Self, Error> {
+        let inner =
+            reqwest::Client::builder().timeout(timeout).build().map_err(Error::HttpClient)?;
+        Ok(Self { inner })
+    }
+}
+
+#[cfg(feature = "reqwest")]
+#[async_trait::async_trait]
+impl HttpClient for ReqwestClient {
+    async fn get(&self, url: &str) -> Result<HttpResponse, Error> {
+        let resp = self.inner.get(url).send().await.map_err(|e| Error::Http(Box::new(e)))?;
+        Ok(HttpResponse {
+            status: resp.status().as_u16(),
+            body: resp.bytes().await.map_err(|e| Error::Http(Box::new(e)))?.to_vec(),
+        })
+    }
+    async fn post(&self, url: &str, body: Vec<u8>) -> Result<HttpResponse, Error> {
+        let resp = self
+            .inner
+            .post(url)
+            .header("content-type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .map_err(|e| Error::Http(Box::new(e)))?;
+        Ok(HttpResponse {
+            status: resp.status().as_u16(),
+            body: resp.bytes().await.map_err(|e| Error::Http(Box::new(e)))?.to_vec(),
+        })
+    }
+    async fn put(&self, url: &str, body: Vec<u8>) -> Result<HttpResponse, Error> {
+        let resp = self
+            .inner
+            .put(url)
+            .header("content-type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .map_err(|e| Error::Http(Box::new(e)))?;
+        Ok(HttpResponse {
+            status: resp.status().as_u16(),
+            body: resp.bytes().await.map_err(|e| Error::Http(Box::new(e)))?.to_vec(),
+        })
+    }
+    async fn delete(&self, url: &str) -> Result<HttpResponse, Error> {
+        let resp = self.inner.delete(url).send().await.map_err(|e| Error::Http(Box::new(e)))?;
+        Ok(HttpResponse {
+            status: resp.status().as_u16(),
+            body: resp.bytes().await.map_err(|e| Error::Http(Box::new(e)))?.to_vec(),
+        })
+    }
+}

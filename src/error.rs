@@ -2,6 +2,15 @@
 
 use thiserror::Error;
 
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("HTTP request failed: {0}")]
+    Http(Box<dyn std::error::Error + Send + Sync>),
+
+    #[error("failed to build HTTP client: {0}")]
+    HttpClient(reqwest::Error),
+}
+
 /// Errors that can occur when building, serializing, or deserializing SETs.
 #[derive(Debug, Error)]
 pub enum SigshareError {
