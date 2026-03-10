@@ -27,6 +27,15 @@ impl<C: HttpClient> SsfClient<C> {
         todo!()
     }
 
+    pub async fn replace_stream(
+        &self,
+        issuer: &str,
+        token: &str,
+        config: &StreamConfiguration,
+    ) -> Result<StreamConfiguration, Error> {
+        todo!()
+    }
+
     pub async fn update_stream(
         &self,
         issuer: &str,
