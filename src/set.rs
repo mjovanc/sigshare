@@ -13,7 +13,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-use crate::error::SigshareError;
+use crate::error::Error;
 use crate::subject::SubjectIdentifier;
 
 /// A Security Event Token as defined by [RFC 8417](https://www.rfc-editor.org/rfc/rfc8417).
@@ -25,7 +25,7 @@ use crate::subject::SubjectIdentifier;
 ///
 /// Use [`SecurityEventTokenBuilder`] to construct instances with validation.
 /// Implements `Serialize` and `Deserialize` for spec-compliant JSON wire format.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SecurityEventToken {
     /// Issuer identifier (REQUIRED per RFC 8417).
     pub iss: String,
@@ -69,7 +69,8 @@ impl<'de> Deserialize<'de> for SecurityEventToken {
 ///
 /// Wraps CAEP, RISC, SSF management events, or arbitrary custom events.
 /// Each variant maps to a specific event type URI in the SET `events` object.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum SsfEvent {
     /// A [CAEP 1.0](https://openid.net/specs/openid-caep-1_0.html) event
     /// (session, credential, compliance, assurance, or risk).
@@ -103,12 +104,12 @@ impl SsfEvent {
     }
 
     /// Serializes the event payload to a JSON value.
-    pub fn to_payload(&self) -> Result<serde_json::Value, SigshareError> {
+    pub fn to_payload(&self) -> Result<serde_json::Value, Error> {
         let value = match self {
             Self::Caep(e) => e.to_payload()?,
             Self::Risc(e) => e.to_payload()?,
-            Self::Verification(e) => serde_json::to_value(e)?,
-            Self::StreamUpdated(e) => serde_json::to_value(e)?,
+            Self::Verification(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::StreamUpdated(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
             Self::Custom { payload, .. } => payload.clone(),
         };
         Ok(value)
@@ -120,23 +121,6 @@ impl SsfEvent {
 /// Validates that all required fields (`iss`, `iat`, `jti`) are present,
 /// that at least one event is provided, and that no two events share the
 /// same event type URI.
-///
-/// # Example
-///
-/// ```
-/// use sigshare::set::{SecurityEventTokenBuilder, SsfEvent};
-/// use sigshare::caep::{CaepEvent, SessionRevoked, CaepCommon};
-///
-/// let token = SecurityEventTokenBuilder::new()
-///     .iss("https://idp.example.com")
-///     .iat(1_700_000_000)
-///     .jti("evt-001")
-///     .event(SsfEvent::Caep(CaepEvent::SessionRevoked(SessionRevoked {
-///         common: CaepCommon::default(),
-///     })))
-///     .build()
-///     .unwrap();
-/// ```
 #[derive(Debug, Default)]
 pub struct SecurityEventTokenBuilder {
     iss: Option<String>,
@@ -152,29 +136,34 @@ pub struct SecurityEventTokenBuilder {
 
 impl SecurityEventTokenBuilder {
     /// Creates a new empty builder.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
     /// Sets the issuer (`iss`) claim. Required.
+    #[must_use]
     pub fn iss(mut self, iss: impl Into<String>) -> Self {
         self.iss = Some(iss.into());
         self
     }
 
     /// Sets the issued-at (`iat`) timestamp as seconds since Unix epoch. Required.
+    #[must_use]
     pub fn iat(mut self, iat: i64) -> Self {
         self.iat = Some(iat);
         self
     }
 
     /// Sets the JWT ID (`jti`) claim. Required.
+    #[must_use]
     pub fn jti(mut self, jti: impl Into<String>) -> Self {
         self.jti = Some(jti.into());
         self
     }
 
     /// Sets the audience (`aud`) claim.
+    #[must_use]
     pub fn aud(mut self, aud: Vec<String>) -> Self {
         self.aud = Some(aud);
         self
@@ -185,55 +174,54 @@ impl SecurityEventTokenBuilder {
     /// Note: SSF 1.0 specifies that `sub` MUST NOT be present in SETs
     /// containing SSF events. Prefer [`sub_id`](Self::sub_id) instead.
     #[allow(clippy::should_implement_trait)]
+    #[must_use]
     pub fn sub(mut self, sub: impl Into<String>) -> Self {
         self.sub = Some(sub.into());
         self
     }
 
     /// Sets the transaction identifier (`txn`) claim.
+    #[must_use]
     pub fn txn(mut self, txn: impl Into<String>) -> Self {
         self.txn = Some(txn.into());
         self
     }
 
     /// Sets the time-of-event (`toe`) claim as seconds since Unix epoch.
+    #[must_use]
     pub fn toe(mut self, toe: i64) -> Self {
         self.toe = Some(toe);
         self
     }
 
     /// Sets the subject identifier (`sub_id`) per RFC 9493.
+    #[must_use]
     pub fn sub_id(mut self, sub_id: SubjectIdentifier) -> Self {
         self.sub_id = Some(sub_id);
         self
     }
 
     /// Adds an event to the token.
+    #[must_use]
     pub fn event(mut self, event: SsfEvent) -> Self {
         self.events.push(event);
         self
     }
 
     /// Builds the [`SecurityEventToken`], validating all required fields.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`SigshareError::MissingField`] if `iss`, `iat`, `jti`, or
-    /// `events` is missing. Returns [`SigshareError::DuplicateEventUri`] if
-    /// two events share the same event type URI.
-    pub fn build(self) -> Result<SecurityEventToken, SigshareError> {
-        let iss = self.iss.ok_or(SigshareError::MissingField { field: "iss" })?;
-        let iat = self.iat.ok_or(SigshareError::MissingField { field: "iat" })?;
-        let jti = self.jti.ok_or(SigshareError::MissingField { field: "jti" })?;
+    pub fn build(self) -> Result<SecurityEventToken, Error> {
+        let iss = self.iss.ok_or(Error::MissingField("iss"))?;
+        let iat = self.iat.ok_or(Error::MissingField("iat"))?;
+        let jti = self.jti.ok_or(Error::MissingField("jti"))?;
 
         if self.events.is_empty() {
-            return Err(SigshareError::MissingField { field: "events" });
+            return Err(Error::MissingField("events"));
         }
 
         let mut seen_uris = std::collections::HashSet::new();
         for event in &self.events {
             if !seen_uris.insert(event.uri()) {
-                return Err(SigshareError::DuplicateEventUri { uri: event.uri().to_owned() });
+                return Err(Error::DuplicateEventUri(event.uri().to_owned()));
             }
         }
 
@@ -301,13 +289,13 @@ fn deserialize_aud<'de, D: serde::Deserializer<'de>>(
 }
 
 impl SecurityEventTokenWire {
-    fn try_from_token(token: &SecurityEventToken) -> Result<Self, SigshareError> {
+    fn try_from_token(token: &SecurityEventToken) -> Result<Self, Error> {
         let mut events = BTreeMap::new();
         for event in &token.events {
             events.insert(event.uri().to_owned(), event.to_payload()?);
         }
 
-        let sub_id = token.sub_id.as_ref().map(serde_json::to_value).transpose()?;
+        let sub_id = token.sub_id.as_ref().map(serde_json::to_value).transpose().map_err(Error::Serialization)?;
 
         Ok(Self {
             iss: token.iss.clone(),
@@ -324,18 +312,18 @@ impl SecurityEventTokenWire {
 }
 
 impl TryFrom<SecurityEventTokenWire> for SecurityEventToken {
-    type Error = SigshareError;
+    type Error = Error;
 
     fn try_from(wire: SecurityEventTokenWire) -> Result<Self, Self::Error> {
         if wire.events.is_empty() {
-            return Err(SigshareError::MissingField { field: "events" });
+            return Err(Error::MissingField("events"));
         }
 
         let sub_id = wire
             .sub_id
             .map(serde_json::from_value)
             .transpose()
-            .map_err(SigshareError::Serialization)?;
+            .map_err(Error::Serialization)?;
 
         let mut events = Vec::with_capacity(wire.events.len());
         for (uri, payload) in wire.events {
@@ -357,48 +345,48 @@ impl TryFrom<SecurityEventTokenWire> for SecurityEventToken {
     }
 }
 
-fn parse_ssf_event(uri: String, payload: serde_json::Value) -> Result<SsfEvent, SigshareError> {
+fn parse_ssf_event(uri: String, payload: serde_json::Value) -> Result<SsfEvent, Error> {
     use crate::caep::*;
 
     match uri.as_str() {
         SESSION_REVOKED_URI => {
             return Ok(SsfEvent::Caep(CaepEvent::SessionRevoked(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         CREDENTIAL_CHANGE_URI => {
             return Ok(SsfEvent::Caep(CaepEvent::CredentialChange(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         TOKEN_CLAIMS_CHANGE_URI => {
             return Ok(SsfEvent::Caep(CaepEvent::TokenClaimsChange(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         DEVICE_COMPLIANCE_CHANGE_URI => {
             return Ok(SsfEvent::Caep(CaepEvent::DeviceComplianceChange(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         ASSURANCE_LEVEL_CHANGE_URI => {
             return Ok(SsfEvent::Caep(CaepEvent::AssuranceLevelChange(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         RISK_LEVEL_CHANGE_URI => {
             return Ok(SsfEvent::Caep(CaepEvent::RiskLevelChange(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         SESSION_ESTABLISHED_URI => {
             return Ok(SsfEvent::Caep(CaepEvent::SessionEstablished(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         SESSION_PRESENTED_URI => {
             return Ok(SsfEvent::Caep(CaepEvent::SessionPresented(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         _ => {}
@@ -409,67 +397,67 @@ fn parse_ssf_event(uri: String, payload: serde_json::Value) -> Result<SsfEvent, 
     match uri.as_str() {
         ACCOUNT_CREDENTIAL_CHANGE_REQUIRED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::AccountCredentialChangeRequired(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         ACCOUNT_PURGED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::AccountPurged(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         ACCOUNT_DISABLED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::AccountDisabled(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         ACCOUNT_ENABLED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::AccountEnabled(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         IDENTIFIER_CHANGED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::IdentifierChanged(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         IDENTIFIER_RECYCLED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::IdentifierRecycled(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         CREDENTIAL_COMPROMISE_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::CredentialCompromise(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         OPT_IN_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::OptIn(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         OPT_OUT_INITIATED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::OptOutInitiated(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         OPT_OUT_CANCELLED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::OptOutCancelled(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         OPT_OUT_EFFECTIVE_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::OptOutEffective(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         RECOVERY_ACTIVATED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::RecoveryActivated(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         RECOVERY_INFORMATION_CHANGED_URI => {
             return Ok(SsfEvent::Risc(RiscEvent::RecoveryInformationChanged(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             )));
         }
         _ => {}
@@ -478,12 +466,12 @@ fn parse_ssf_event(uri: String, payload: serde_json::Value) -> Result<SsfEvent, 
     match uri.as_str() {
         crate::ssf::VERIFICATION_EVENT_URI => {
             return Ok(SsfEvent::Verification(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             ));
         }
         crate::ssf::STREAM_UPDATED_EVENT_URI => {
             return Ok(SsfEvent::StreamUpdated(
-                serde_json::from_value(payload).map_err(SigshareError::Serialization)?,
+                serde_json::from_value(payload).map_err(Error::Serialization)?,
             ));
         }
         _ => {}

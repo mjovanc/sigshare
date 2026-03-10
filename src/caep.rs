@@ -45,7 +45,7 @@ pub use crate::subject::CredentialType;
 /// the value is the localized message, as specified in [CAEP §2].
 ///
 /// [CAEP §2]: https://openid.net/specs/openid-caep-1_0.html#section-2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct CaepCommon {
     /// The entity that initiated or caused the event.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -66,6 +66,7 @@ pub struct CaepCommon {
 /// [CAEP §2]: https://openid.net/specs/openid-caep-1_0.html#section-2
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum InitiatingEntity {
     /// An administrator took the action.
     Admin,
@@ -82,6 +83,7 @@ pub enum InitiatingEntity {
 /// [CAEP §3.3]: https://openid.net/specs/openid-caep-1_0.html#section-3.3
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum CredentialChangeType {
     /// A new credential was created.
     Create,
@@ -97,6 +99,7 @@ pub enum CredentialChangeType {
 ///
 /// [CAEP §3.5]: https://openid.net/specs/openid-caep-1_0.html#section-3.5
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum ComplianceStatus {
     /// The device is compliant with the required policies.
     #[serde(rename = "compliant")]
@@ -111,6 +114,7 @@ pub enum ComplianceStatus {
 /// [CAEP §3.4]: https://openid.net/specs/openid-caep-1_0.html#section-3.4
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum ChangeDirection {
     /// The assurance level increased.
     Increase,
@@ -122,6 +126,7 @@ pub enum ChangeDirection {
 ///
 /// [CAEP §3.8]: https://openid.net/specs/openid-caep-1_0.html#section-3.8
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum RiskLevel {
     /// High risk.
     #[serde(rename = "HIGH")]
@@ -138,6 +143,7 @@ pub enum RiskLevel {
 ///
 /// [CAEP §3.8]: https://openid.net/specs/openid-caep-1_0.html#section-3.8
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum RiskPrincipal {
     /// The risk pertains to a user.
     #[serde(rename = "USER")]
@@ -165,7 +171,7 @@ pub enum RiskPrincipal {
 /// any associated sessions or tokens.
 ///
 /// [CAEP §3.1]: https://openid.net/specs/openid-caep-1_0.html#section-3.1
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SessionRevoked {
     /// Common CAEP event fields (initiating entity, reason, timestamp).
     #[serde(flatten)]
@@ -175,7 +181,7 @@ pub struct SessionRevoked {
 /// A credential was created, updated, revoked, or deleted ([CAEP §3.3]).
 ///
 /// [CAEP §3.3]: https://openid.net/specs/openid-caep-1_0.html#section-3.3
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CredentialChange {
     /// Common CAEP event fields.
     #[serde(flatten)]
@@ -204,7 +210,7 @@ pub struct CredentialChange {
 /// receiver should re-evaluate access based on the updated claims.
 ///
 /// [CAEP §3.2]: https://openid.net/specs/openid-caep-1_0.html#section-3.2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TokenClaimsChange {
     /// Common CAEP event fields.
     #[serde(flatten)]
@@ -216,7 +222,7 @@ pub struct TokenClaimsChange {
 /// A device's compliance status changed ([CAEP §3.5]).
 ///
 /// [CAEP §3.5]: https://openid.net/specs/openid-caep-1_0.html#section-3.5
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DeviceComplianceChange {
     /// Common CAEP event fields.
     #[serde(flatten)]
@@ -233,7 +239,7 @@ pub struct DeviceComplianceChange {
 /// has changed within a given namespace.
 ///
 /// [CAEP §3.4]: https://openid.net/specs/openid-caep-1_0.html#section-3.4
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AssuranceLevelChange {
     /// Common CAEP event fields.
     #[serde(flatten)]
@@ -255,7 +261,7 @@ pub struct AssuranceLevelChange {
 /// Signals that the assessed risk for a principal has changed.
 ///
 /// [CAEP §3.8]: https://openid.net/specs/openid-caep-1_0.html#section-3.8
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RiskLevelChange {
     /// Common CAEP event fields.
     #[serde(flatten)]
@@ -277,7 +283,7 @@ pub struct RiskLevelChange {
 /// Signals that a new session has been created for the subject.
 ///
 /// [CAEP §3.6]: https://openid.net/specs/openid-caep-1_0.html#section-3.6
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SessionEstablished {
     /// Common CAEP event fields.
     #[serde(flatten)]
@@ -301,7 +307,7 @@ pub struct SessionEstablished {
 /// Signals that an existing session was used (presented) at the transmitter.
 ///
 /// [CAEP §3.7]: https://openid.net/specs/openid-caep-1_0.html#section-3.7
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SessionPresented {
     /// Common CAEP event fields.
     #[serde(flatten)]
@@ -355,7 +361,8 @@ pub const SESSION_PRESENTED_URI: &str =
 /// place the event under the correct key in the SET `events` map.
 ///
 /// [CAEP 1.0]: https://openid.net/specs/openid-caep-1_0.html
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum CaepEvent {
     /// See [`SessionRevoked`].
     SessionRevoked(SessionRevoked),
@@ -397,16 +404,16 @@ impl CaepEvent {
     ///
     /// The returned value is placed under this event's [`uri`](CaepEvent::uri) key
     /// in the SET `events` object.
-    pub fn to_payload(&self) -> Result<serde_json::Value, crate::error::SigshareError> {
+    pub fn to_payload(&self) -> Result<serde_json::Value, crate::error::Error> {
         let value = match self {
-            Self::SessionRevoked(e) => serde_json::to_value(e)?,
-            Self::CredentialChange(e) => serde_json::to_value(e)?,
-            Self::TokenClaimsChange(e) => serde_json::to_value(e)?,
-            Self::DeviceComplianceChange(e) => serde_json::to_value(e)?,
-            Self::AssuranceLevelChange(e) => serde_json::to_value(e)?,
-            Self::RiskLevelChange(e) => serde_json::to_value(e)?,
-            Self::SessionEstablished(e) => serde_json::to_value(e)?,
-            Self::SessionPresented(e) => serde_json::to_value(e)?,
+            Self::SessionRevoked(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
+            Self::CredentialChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
+            Self::TokenClaimsChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
+            Self::DeviceComplianceChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
+            Self::AssuranceLevelChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
+            Self::RiskLevelChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
+            Self::SessionEstablished(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
+            Self::SessionPresented(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
         };
         Ok(value)
     }

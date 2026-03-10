@@ -68,7 +68,7 @@ mod stream;
 pub mod subject;
 
 pub use caep::CaepEvent;
-pub use error::{Error, SigshareError};
+pub use error::Error;
 pub use risc::RiscEvent;
 pub use set::{SecurityEventToken, SecurityEventTokenBuilder, SsfEvent};
 pub use ssf::{

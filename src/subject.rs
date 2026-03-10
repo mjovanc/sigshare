@@ -45,23 +45,11 @@ use serde::{Deserialize, Serialize};
 /// The enum is serialized with an internally-tagged `"format"` discriminator,
 /// matching the wire format required by the specification.
 ///
-/// # Example
-///
-/// ```
-/// use sigshare::subject::SubjectIdentifier;
-///
-/// let email = SubjectIdentifier::Email {
-///     email: "user@example.com".into(),
-/// };
-/// let json = serde_json::to_value(&email).unwrap();
-/// assert_eq!(json["format"], "email");
-/// assert_eq!(json["email"], "user@example.com");
-/// ```
-///
 /// [RFC 9493]: https://www.rfc-editor.org/rfc/rfc9493
 /// [SSF §3]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-3
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "format")]
+#[non_exhaustive]
 pub enum SubjectIdentifier {
     /// Account identifier — an `acct:` URI per [RFC 7565](https://www.rfc-editor.org/rfc/rfc7565).
     #[serde(rename = "account")]
@@ -133,7 +121,7 @@ pub enum SubjectIdentifier {
 /// All fields are optional; at least one should be present.
 ///
 /// [SSF §3.3]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-3.3
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct ComplexSubject {
     /// The user associated with the event.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -167,6 +155,7 @@ pub struct ComplexSubject {
 /// [CAEP §3.3]: https://openid.net/specs/openid-caep-1_0.html#section-3.3
 /// [RISC §2.7]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.7
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum CredentialType {
     /// A password credential.
     #[serde(rename = "password")]

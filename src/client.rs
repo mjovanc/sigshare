@@ -21,21 +21,6 @@ use crate::ssf::TransmitterConfiguration;
 ///
 /// Handles discovery, stream management, and poll delivery. Caches
 /// [`TransmitterConfiguration`] per issuer with a configurable TTL.
-///
-/// # Usage
-///
-/// ```ignore
-/// let client = SsfClient::new(http, Duration::from_secs(300));
-///
-/// // 1. Discover transmitter
-/// let config = client.discover("https://idp.example.com").await?;
-///
-/// // 2. Create a stream
-/// let stream = client.create_stream("https://idp.example.com", token, &req).await?;
-///
-/// // 3. Poll for events
-/// let events = client.poll(&poll_url, token, &poll_req).await?;
-/// ```
 pub struct SsfClient<C: HttpClient> {
     pub(crate) http: C,
     pub(crate) cache: TtlCache<TransmitterConfiguration>,
@@ -46,15 +31,12 @@ impl<C: HttpClient> SsfClient<C> {
     ///
     /// `cache_ttl` controls how long a discovered [`TransmitterConfiguration`]
     /// is reused before re-fetching from the well-known endpoint.
+    #[must_use]
     pub fn new(http: C, cache_ttl: Duration) -> Self {
         Self { http, cache: TtlCache::new(cache_ttl) }
     }
 
     /// Resolve a transmitter endpoint URL from cached config.
-    ///
-    /// Returns [`Error::NotCached`] if [`SsfClient::discover`] hasn't been
-    /// called for this issuer, or [`Error::MissingEndpoint`] if the
-    /// transmitter doesn't advertise the requested endpoint.
     pub(crate) async fn resolve_endpoint(
         &self,
         issuer: &str,
@@ -68,15 +50,13 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Build a URL with optional query parameters.
-    ///
-    /// Percent-encodes both keys and values per RFC 3986. Handles joining
-    /// `?` vs `&` correctly even if the base URL already contains a query string.
-    pub(crate) fn url_with_params(base: &str, params: &[(&str, &str)]) -> String {
+    pub(crate) fn url_with_params(base: &str, params: &[(&str, &str)]) -> Result<String, Error> {
         if params.is_empty() {
-            return base.to_owned();
+            return Ok(base.to_owned());
         }
 
-        let mut parsed = url::Url::parse(base).expect("base URL must be valid");
+        let mut parsed =
+            url::Url::parse(base).map_err(|e| Error::InvalidIssuerUrl(e.to_string()))?;
         {
             let mut query = parsed.query_pairs_mut();
             for (key, value) in params {
@@ -84,13 +64,10 @@ impl<C: HttpClient> SsfClient<C> {
             }
         }
 
-        parsed.to_string()
+        Ok(parsed.to_string())
     }
 
     /// Make an authenticated HTTP request and return the raw response.
-    ///
-    /// Injects `Authorization: Bearer {token}` and checks for HTTP error
-    /// status codes (>= 400), returning [`Error::HttpStatus`] on failure.
     pub(crate) async fn authenticated_request(
         &self,
         method: Method,
@@ -113,8 +90,7 @@ impl<C: HttpClient> SsfClient<C> {
         Ok(resp)
     }
 
-    /// Unauthenticated GET. Used for discovery (well-known endpoint requires
-    /// no auth per SSF §7.2).
+    /// Unauthenticated GET for discovery.
     pub(crate) async fn unauthenticated_get(&self, url: &str) -> Result<HttpResponse, Error> {
         let resp = self.http.request(Method::Get, url, &[], None).await?;
 
@@ -129,9 +105,6 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated GET, deserialize JSON response.
-    ///
-    /// Used by: read stream config (§8.1.1), list streams (§8.1.1),
-    /// read stream status (§8.1.2).
     pub(crate) async fn get_json<T: DeserializeOwned>(
         &self,
         url: &str,
@@ -142,9 +115,6 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated POST with JSON body, deserialize JSON response.
-    ///
-    /// Used by: create stream (§8.1.1), update stream status (§8.1.2),
-    /// poll delivery (RFC 8936 §2).
     pub(crate) async fn post_json<T: DeserializeOwned, B: Serialize>(
         &self,
         url: &str,
@@ -157,8 +127,6 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated PATCH with JSON body, deserialize JSON response.
-    ///
-    /// Used by: partial stream config update (§8.1.1), stream status update (§8.1.2).
     pub(crate) async fn patch_json<T: DeserializeOwned, B: Serialize>(
         &self,
         url: &str,
@@ -171,8 +139,6 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated PUT with JSON body, deserialize JSON response.
-    ///
-    /// Used by: replace stream config (§8.1.1).
     pub(crate) async fn put_json<T: DeserializeOwned, B: Serialize>(
         &self,
         url: &str,
@@ -185,9 +151,6 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated POST with JSON body, expect no meaningful response body.
-    ///
-    /// Used by: add subject (§8.1.3), remove subject (§8.1.3),
-    /// verification (§8.1.4 — returns 204).
     pub(crate) async fn post_empty<B: Serialize>(
         &self,
         url: &str,
@@ -200,8 +163,6 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated DELETE, expect no meaningful response body.
-    ///
-    /// Used by: delete stream (§8.1.1).
     pub(crate) async fn delete_empty(&self, url: &str, token: &str) -> Result<(), Error> {
         self.authenticated_request(Method::Delete, url, token, None).await?;
         Ok(())

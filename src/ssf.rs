@@ -75,8 +75,9 @@ pub const STREAM_UPDATED_EVENT_URI: &str =
 /// value is the delivery method URN.
 ///
 /// [SSF §6.1]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-6.1
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "method")]
+#[non_exhaustive]
 pub enum DeliveryConfig {
     /// Push delivery per [RFC 8935](https://www.rfc-editor.org/rfc/rfc8935).
     ///
@@ -107,6 +108,7 @@ pub enum DeliveryConfig {
 /// [SSF §8.1.2]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.2
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum StreamStatus {
     /// The stream is active and events are being delivered.
     Enabled,
@@ -123,7 +125,7 @@ pub enum StreamStatus {
 /// the transmitter and receiver populate different subsets.
 ///
 /// [SSF §8.1.1]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.1
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct StreamConfiguration {
     /// Transmitter-assigned stream identifier.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -160,7 +162,7 @@ pub struct StreamConfiguration {
 /// Response to a stream status read request ([SSF §8.1.2]).
 ///
 /// [SSF §8.1.2]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StreamStatusResponse {
     /// The stream this status applies to.
     pub stream_id: String,
@@ -174,7 +176,7 @@ pub struct StreamStatusResponse {
 /// Request to update a stream's status ([SSF §8.1.2]).
 ///
 /// [SSF §8.1.2]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StreamStatusUpdate {
     /// The stream to update.
     pub stream_id: String,
@@ -188,7 +190,7 @@ pub struct StreamStatusUpdate {
 /// Request to add a subject to a stream ([SSF §8.1.3]).
 ///
 /// [SSF §8.1.3]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.3
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AddSubjectRequest {
     /// The stream to add the subject to.
     pub stream_id: String,
@@ -199,7 +201,7 @@ pub struct AddSubjectRequest {
 /// Request to remove a subject from a stream ([SSF §8.1.3]).
 ///
 /// [SSF §8.1.3]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.3
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RemoveSubjectRequest {
     /// The stream to remove the subject from.
     pub stream_id: String,
@@ -210,7 +212,7 @@ pub struct RemoveSubjectRequest {
 /// Request to trigger a verification event on a stream ([SSF §8.1.4]).
 ///
 /// [SSF §8.1.4]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.4
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VerificationRequest {
     /// The stream to verify.
     pub stream_id: String,
@@ -229,7 +231,7 @@ pub struct VerificationRequest {
 /// corresponding [`VerificationRequest`].
 ///
 /// [SSF §8.1.4]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.4
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct VerificationEvent {
     /// The opaque state value echoed from the verification request.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -242,7 +244,7 @@ pub struct VerificationEvent {
 /// Notifies the receiver that the transmitter has changed the stream's status.
 ///
 /// [SSF §8.1.5]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.5
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StreamUpdatedEvent {
     /// The new status of the stream.
     pub status: StreamStatus,
@@ -257,7 +259,7 @@ pub struct StreamUpdatedEvent {
 /// for individual SETs that could not be processed.
 ///
 /// [RFC 8936 §2]: https://www.rfc-editor.org/rfc/rfc8936#section-2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SetError {
     /// An error code string (e.g. `"invalid_request"`, `"access_denied"`).
     pub err: String,
@@ -269,7 +271,7 @@ pub struct SetError {
 /// A poll request sent by the receiver to fetch and acknowledge SETs ([RFC 8936 §2]).
 ///
 /// [RFC 8936 §2]: https://www.rfc-editor.org/rfc/rfc8936#section-2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct PollRequest {
     /// JTIs of SETs the receiver has successfully processed (acknowledgements).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -289,7 +291,7 @@ pub struct PollRequest {
 /// A poll response from the transmitter containing queued SETs ([RFC 8936 §2]).
 ///
 /// [RFC 8936 §2]: https://www.rfc-editor.org/rfc/rfc8936#section-2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PollResponse {
     /// Queued SETs, keyed by JTI. Each value is a compact-serialized JWT (or
     /// unsigned JSON SET depending on the stream configuration).
@@ -302,7 +304,7 @@ pub struct PollResponse {
 /// An authorization scheme supported by a transmitter ([SSF §7.1.1]).
 ///
 /// [SSF §7.1.1]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-7.1.1
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AuthorizationScheme {
     /// The specification URN identifying the authorization scheme.
     pub spec_urn: String,
@@ -315,6 +317,7 @@ pub struct AuthorizationScheme {
 ///
 /// [SSF §7.1]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-7.1
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum DefaultSubjects {
     /// All subjects are included in the stream by default.
     #[serde(rename = "ALL")]
@@ -331,7 +334,7 @@ pub enum DefaultSubjects {
 /// supported delivery methods, and management endpoints.
 ///
 /// [SSF §7.1]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-7.1
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TransmitterConfiguration {
     /// The SSF specification version (e.g. `"1_0"`).
     #[serde(skip_serializing_if = "Option::is_none")]

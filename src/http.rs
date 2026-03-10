@@ -7,6 +7,7 @@
 use crate::error::Error;
 
 /// Raw HTTP response returned by an [`HttpClient`] implementation.
+#[derive(Debug, Clone)]
 pub struct HttpResponse {
     /// HTTP status code (e.g. `200`, `404`).
     pub status: u16,
@@ -16,6 +17,7 @@ pub struct HttpResponse {
 
 /// HTTP method for a request.
 #[derive(Debug, Clone, Copy)]
+#[non_exhaustive]
 pub enum Method {
     /// HTTP GET.
     Get,
@@ -34,25 +36,6 @@ pub enum Method {
 /// Implement this to plug in your own HTTP stack. The [`crate::SsfClient`]
 /// is generic over `C: HttpClient`, so any implementation works —
 /// reqwest, hyper, a mock for testing, etc.
-///
-/// # Example
-///
-/// ```ignore
-/// struct MyClient;
-///
-/// #[async_trait::async_trait]
-/// impl HttpClient for MyClient {
-///     async fn request(
-///         &self,
-///         method: Method,
-///         url: &str,
-///         headers: &[(&str, &str)],
-///         body: Option<Vec<u8>>,
-///     ) -> Result<HttpResponse, Error> {
-///         // your implementation
-///     }
-/// }
-/// ```
 #[async_trait::async_trait]
 pub trait HttpClient: Send + Sync {
     /// Send an HTTP request and return the raw response.

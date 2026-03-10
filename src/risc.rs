@@ -35,11 +35,14 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+use crate::Error;
+
 /// Reason an account was disabled ([RISC §2.3]).
 ///
 /// [RISC §2.3]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.3
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+#[non_exhaustive]
 pub enum AccountDisabledReason {
     /// The account was disabled because it was hijacked.
     Hijacking,
@@ -55,7 +58,7 @@ pub enum AccountDisabledReason {
 /// This event carries no additional payload.
 ///
 /// [RISC §2.1]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.1
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AccountCredentialChangeRequired {}
 
 /// The subject's account has been permanently deleted ([RISC §2.2]).
@@ -66,13 +69,13 @@ pub struct AccountCredentialChangeRequired {}
 /// This event carries no additional payload.
 ///
 /// [RISC §2.2]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AccountPurged {}
 
 /// The subject's account has been disabled ([RISC §2.3]).
 ///
 /// [RISC §2.3]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.3
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AccountDisabled {
     /// The reason the account was disabled, if known.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -84,7 +87,7 @@ pub struct AccountDisabled {
 /// This event carries no additional payload.
 ///
 /// [RISC §2.4]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.4
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AccountEnabled {}
 
 /// An identifier for the subject has changed ([RISC §2.5]).
@@ -93,7 +96,7 @@ pub struct AccountEnabled {}
 /// The subject identifier in the SET refers to the **previous** identifier.
 ///
 /// [RISC §2.5]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.5
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct IdentifierChanged {
     /// The new value of the identifier, if the transmitter chooses to disclose it.
     #[serde(rename = "new-value", skip_serializing_if = "Option::is_none")]
@@ -106,7 +109,7 @@ pub struct IdentifierChanged {
 /// This event carries no additional payload.
 ///
 /// [RISC §2.6]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.6
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct IdentifierRecycled {}
 
 /// A credential associated with the subject has been compromised ([RISC §2.7]).
@@ -116,7 +119,7 @@ pub struct IdentifierRecycled {}
 ///
 /// [RISC §2.7]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.7
 /// [CAEP §2]: https://openid.net/specs/openid-caep-1_0.html#section-2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CredentialCompromise {
     /// The type of credential that was compromised.
     pub credential_type: crate::subject::CredentialType,
@@ -136,7 +139,7 @@ pub struct CredentialCompromise {
 /// This event carries no additional payload.
 ///
 /// [RISC §2.8.1]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.8.1
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct OptIn {}
 
 /// The subject has initiated an opt-out from RISC event sharing ([RISC §2.8.2]).
@@ -144,7 +147,7 @@ pub struct OptIn {}
 /// This event carries no additional payload.
 ///
 /// [RISC §2.8.2]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.8.2
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct OptOutInitiated {}
 
 /// The subject's opt-out has been cancelled ([RISC §2.8.3]).
@@ -152,7 +155,7 @@ pub struct OptOutInitiated {}
 /// This event carries no additional payload.
 ///
 /// [RISC §2.8.3]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.8.3
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct OptOutCancelled {}
 
 /// The subject's opt-out is now effective ([RISC §2.8.4]).
@@ -162,7 +165,7 @@ pub struct OptOutCancelled {}
 /// This event carries no additional payload.
 ///
 /// [RISC §2.8.4]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.8.4
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct OptOutEffective {}
 
 /// Account recovery has been activated ([RISC §2.9]).
@@ -170,7 +173,7 @@ pub struct OptOutEffective {}
 /// This event carries no additional payload.
 ///
 /// [RISC §2.9]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.9
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct RecoveryActivated {}
 
 /// The subject's recovery information (e.g. recovery email, phone) has
@@ -179,7 +182,7 @@ pub struct RecoveryActivated {}
 /// This event carries no additional payload.
 ///
 /// [RISC §2.10]: https://openid.net/specs/openid-risc-profile-specification-1_0.html#section-2.10
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct RecoveryInformationChanged {}
 
 /// Schema URI for the [`AccountCredentialChangeRequired`] event.
@@ -242,7 +245,8 @@ pub const RECOVERY_INFORMATION_CHANGED_URI: &str =
 /// place the event under the correct key in the SET `events` map.
 ///
 /// [RISC 1.0]: https://openid.net/specs/openid-risc-profile-specification-1_0.html
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum RiscEvent {
     /// See [`AccountCredentialChangeRequired`].
     AccountCredentialChangeRequired(AccountCredentialChangeRequired),
@@ -299,21 +303,27 @@ impl RiscEvent {
     ///
     /// The returned value is placed under this event's [`uri`](RiscEvent::uri) key
     /// in the SET `events` object.
-    pub fn to_payload(&self) -> Result<serde_json::Value, crate::error::SigshareError> {
+    pub fn to_payload(&self) -> Result<serde_json::Value, Error> {
         let value = match self {
-            Self::AccountCredentialChangeRequired(e) => serde_json::to_value(e)?,
-            Self::AccountPurged(e) => serde_json::to_value(e)?,
-            Self::AccountDisabled(e) => serde_json::to_value(e)?,
-            Self::AccountEnabled(e) => serde_json::to_value(e)?,
-            Self::IdentifierChanged(e) => serde_json::to_value(e)?,
-            Self::IdentifierRecycled(e) => serde_json::to_value(e)?,
-            Self::CredentialCompromise(e) => serde_json::to_value(e)?,
-            Self::OptIn(e) => serde_json::to_value(e)?,
-            Self::OptOutInitiated(e) => serde_json::to_value(e)?,
-            Self::OptOutCancelled(e) => serde_json::to_value(e)?,
-            Self::OptOutEffective(e) => serde_json::to_value(e)?,
-            Self::RecoveryActivated(e) => serde_json::to_value(e)?,
-            Self::RecoveryInformationChanged(e) => serde_json::to_value(e)?,
+            Self::AccountCredentialChangeRequired(e) => {
+                serde_json::to_value(e).map_err(Error::Serialization)?
+            }
+            Self::AccountPurged(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::AccountDisabled(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::AccountEnabled(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::IdentifierChanged(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::IdentifierRecycled(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::CredentialCompromise(e) => {
+                serde_json::to_value(e).map_err(Error::Serialization)?
+            }
+            Self::OptIn(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::OptOutInitiated(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::OptOutCancelled(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::OptOutEffective(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::RecoveryActivated(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::RecoveryInformationChanged(e) => {
+                serde_json::to_value(e).map_err(Error::Serialization)?
+            }
         };
         Ok(value)
     }

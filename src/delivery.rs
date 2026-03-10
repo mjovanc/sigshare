@@ -6,6 +6,7 @@ use crate::{
 };
 
 impl<C: HttpClient> SsfClient<C> {
+    /// Poll for queued SETs from the transmitter (POST, RFC 8936 §2).
     pub async fn poll(
         &self,
         endpoint_url: &str,
@@ -15,6 +16,10 @@ impl<C: HttpClient> SsfClient<C> {
         todo!()
     }
 
+    /// Parse and validate a push-delivered SET (RFC 8935).
+    ///
+    /// Deserializes the raw body into a [`SecurityEventToken`] and validates
+    /// that the `iss` and `aud` claims match the expected values.
     pub fn parse_push_set(
         &self,
         body: &[u8],
