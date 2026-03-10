@@ -57,6 +57,7 @@
 mod cache;
 pub mod caep;
 pub mod client;
+pub mod delivery;
 pub mod discovery;
 pub mod error;
 pub mod http;
