@@ -25,3 +25,4 @@ thiserror = "2"
 async-trait = "0.1.89"
 tokio = { version = "1.50.0", features = ["sync"] }
 reqwest = { version = "0.13.2", features = ["json"], optional = true }
+url = "2"

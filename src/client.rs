@@ -69,28 +69,22 @@ impl<C: HttpClient> SsfClient<C> {
 
     /// Build a URL with optional query parameters.
     ///
-    /// Handles joining `?` vs `&` correctly even if the base URL already
-    /// contains a query string.
+    /// Percent-encodes both keys and values per RFC 3986. Handles joining
+    /// `?` vs `&` correctly even if the base URL already contains a query string.
     pub(crate) fn url_with_params(base: &str, params: &[(&str, &str)]) -> String {
         if params.is_empty() {
             return base.to_owned();
         }
 
-        let mut url = base.to_owned();
-        let separator = if url.contains('?') { '&' } else { '?' };
-
-        for (i, (key, value)) in params.iter().enumerate() {
-            if i == 0 {
-                url.push(separator);
-            } else {
-                url.push('&');
+        let mut parsed = url::Url::parse(base).expect("base URL must be valid");
+        {
+            let mut query = parsed.query_pairs_mut();
+            for (key, value) in params {
+                query.append_pair(key, value);
             }
-            url.push_str(key);
-            url.push('=');
-            url.push_str(value);
         }
 
-        url
+        parsed.to_string()
     }
 
     /// Make an authenticated HTTP request and return the raw response.
@@ -162,9 +156,23 @@ impl<C: HttpClient> SsfClient<C> {
         serde_json::from_slice(&resp.body).map_err(Error::InvalidResponse)
     }
 
+    /// Authenticated PATCH with JSON body, deserialize JSON response.
+    ///
+    /// Used by: partial stream config update (§8.1.1), stream status update (§8.1.2).
+    pub(crate) async fn patch_json<T: DeserializeOwned, B: Serialize>(
+        &self,
+        url: &str,
+        token: &str,
+        body: &B,
+    ) -> Result<T, Error> {
+        let bytes = serde_json::to_vec(body).map_err(Error::Serialization)?;
+        let resp = self.authenticated_request(Method::Patch, url, token, Some(bytes)).await?;
+        serde_json::from_slice(&resp.body).map_err(Error::InvalidResponse)
+    }
+
     /// Authenticated PUT with JSON body, deserialize JSON response.
     ///
-    /// Used by: update stream config (§8.1.1).
+    /// Used by: replace stream config (§8.1.1).
     pub(crate) async fn put_json<T: DeserializeOwned, B: Serialize>(
         &self,
         url: &str,

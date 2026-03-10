@@ -123,7 +123,7 @@ pub enum StreamStatus {
 /// the transmitter and receiver populate different subsets.
 ///
 /// [SSF §8.1.1]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-8.1.1
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct StreamConfiguration {
     /// Transmitter-assigned stream identifier.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -193,10 +193,7 @@ pub struct AddSubjectRequest {
     /// The stream to add the subject to.
     pub stream_id: String,
     /// The subject identifier to add.
-    pub subject: SubjectIdentifier,
-    /// Whether the receiver has verified the subject (optional).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub verified: Option<bool>,
+    pub sub_id: SubjectIdentifier,
 }
 
 /// Request to remove a subject from a stream ([SSF §8.1.3]).
@@ -207,7 +204,7 @@ pub struct RemoveSubjectRequest {
     /// The stream to remove the subject from.
     pub stream_id: String,
     /// The subject identifier to remove.
-    pub subject: SubjectIdentifier,
+    pub sub_id: SubjectIdentifier,
 }
 
 /// Request to trigger a verification event on a stream ([SSF §8.1.4]).
@@ -220,6 +217,9 @@ pub struct VerificationRequest {
     /// An opaque value that the transmitter echoes back in the verification event.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<String>,
+    /// Optionally request verification for a specific subject.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sub_id: Option<SubjectIdentifier>,
 }
 
 /// Payload of a verification event ([SSF §8.1.4]).

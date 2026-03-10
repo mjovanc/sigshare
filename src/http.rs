@@ -23,6 +23,8 @@ pub enum Method {
     Post,
     /// HTTP PUT.
     Put,
+    /// HTTP PATCH.
+    Patch,
     /// HTTP DELETE.
     Delete,
 }
@@ -75,7 +77,7 @@ pub trait HttpClient: Send + Sync {
 /// Available when the `reqwest` feature is enabled. Automatically sets
 /// `Content-Type: application/json` when a body is present.
 #[cfg(feature = "reqwest")]
-pub(crate) struct ReqwestClient {
+pub struct ReqwestClient {
     inner: reqwest::Client,
 }
 
@@ -103,6 +105,7 @@ impl HttpClient for ReqwestClient {
             Method::Get => self.inner.get(url),
             Method::Post => self.inner.post(url),
             Method::Put => self.inner.put(url),
+            Method::Patch => self.inner.patch(url),
             Method::Delete => self.inner.delete(url),
         };
 

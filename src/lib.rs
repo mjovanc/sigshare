@@ -57,19 +57,23 @@
 mod cache;
 pub mod caep;
 pub mod client;
-pub mod delivery;
-pub mod discovery;
+mod delivery;
+mod discovery;
 pub mod error;
 pub mod http;
 pub mod risc;
 pub mod set;
 pub mod ssf;
-pub mod stream;
+mod stream;
 pub mod subject;
 
 pub use caep::CaepEvent;
 pub use error::{Error, SigshareError};
 pub use risc::RiscEvent;
 pub use set::{SecurityEventToken, SecurityEventTokenBuilder, SsfEvent};
-pub use ssf::{StreamConfiguration, StreamStatus, TransmitterConfiguration};
-pub use subject::{CredentialType, SubjectIdentifier};
+pub use ssf::{
+    AddSubjectRequest, DeliveryConfig, PollRequest, PollResponse, RemoveSubjectRequest,
+    StreamConfiguration, StreamStatus, StreamStatusResponse, StreamStatusUpdate,
+    TransmitterConfiguration, VerificationRequest,
+};
+pub use subject::{ComplexSubject, CredentialType, SubjectIdentifier};

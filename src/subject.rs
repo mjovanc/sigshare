@@ -133,7 +133,7 @@ pub enum SubjectIdentifier {
 /// All fields are optional; at least one should be present.
 ///
 /// [SSF §3.3]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html#section-3.3
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct ComplexSubject {
     /// The user associated with the event.
     #[serde(skip_serializing_if = "Option::is_none")]
