@@ -1,6 +1,6 @@
 use crate::{Error, TransmitterConfiguration, client::SsfClient, http::HttpClient};
 
-const SSF_WELL_KNOWN_PATH: &str = ".well-known/ssf-configuration";
+const SSF_WELL_KNOWN_PATH: &str = "/.well-known/ssf-configuration";
 
 impl<C: HttpClient> SsfClient<C> {
     pub async fn discover(&self, issuer: &str) -> Result<TransmitterConfiguration, Error> {
@@ -22,7 +22,7 @@ impl<C: HttpClient> SsfClient<C> {
         todo!()
     }
 
-    fn build_discovery_url(issuer: &str) -> String {
+    fn build_discovery_url(issuer: &str) -> Result<String, Error> {
         todo!()
     }
 
