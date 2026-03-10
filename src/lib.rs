@@ -63,6 +63,7 @@ pub mod http;
 pub mod risc;
 pub mod set;
 pub mod ssf;
+pub mod stream;
 pub mod subject;
 
 pub use caep::CaepEvent;
