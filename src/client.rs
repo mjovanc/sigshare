@@ -1,11 +1,7 @@
 //! SSF client for discovery, stream management, and event delivery.
 //!
 //! [`SsfClient`] is the single entry point for receivers interacting with an
-//! SSF transmitter. Behavior is split across impl blocks in sibling modules:
-//!
-//! - [`crate::discovery`] — transmitter configuration discovery
-//! - [`crate::stream`] — stream lifecycle, status, subjects, verification
-//! - [`crate::delivery`] — poll-based delivery and push SET parsing
+//! SSF transmitter.
 
 use std::time::Duration;
 
@@ -15,15 +11,21 @@ use serde::de::DeserializeOwned;
 use crate::cache::TtlCache;
 use crate::error::Error;
 use crate::http::{HttpClient, HttpResponse, Method};
-use crate::ssf::TransmitterConfiguration;
+use crate::set::SecurityEventToken;
+use crate::ssf::{
+    AddSubjectRequest, PollRequest, PollResponse, RemoveSubjectRequest, StreamConfiguration,
+    StreamStatusResponse, StreamStatusUpdate, TransmitterConfiguration, VerificationRequest,
+};
+
+const SSF_WELL_KNOWN_PATH: &str = "/.well-known/ssf-configuration";
 
 /// A client for interacting with an SSF transmitter.
 ///
 /// Handles discovery, stream management, and poll delivery. Caches
 /// [`TransmitterConfiguration`] per issuer with a configurable TTL.
 pub struct SsfClient<C: HttpClient> {
-    pub(crate) http: C,
-    pub(crate) cache: TtlCache<TransmitterConfiguration>,
+    http: C,
+    cache: TtlCache<TransmitterConfiguration>,
 }
 
 impl<C: HttpClient> SsfClient<C> {
@@ -36,8 +38,204 @@ impl<C: HttpClient> SsfClient<C> {
         Self { http, cache: TtlCache::new(cache_ttl) }
     }
 
+    /// Discover and cache the transmitter configuration for the given issuer.
+    ///
+    /// Fetches the `/.well-known/ssf-configuration` document, validates that
+    /// the `issuer` field matches, and caches the result for the configured TTL.
+    pub async fn discover(&self, issuer: &str) -> Result<TransmitterConfiguration, Error> {
+        todo!()
+    }
+
+    /// Return the cached transmitter configuration, re-fetching if expired.
+    pub async fn get_transmitter_config(
+        &self,
+        issuer: &str,
+    ) -> Result<TransmitterConfiguration, Error> {
+        todo!()
+    }
+
+    /// Remove the cached transmitter configuration for the given issuer.
+    ///
+    /// Returns `true` if an entry was removed, `false` if no entry existed.
+    pub async fn invalidate_transmitter_config(&self, issuer: &str) -> bool {
+        todo!()
+    }
+
+    /// Check whether the transmitter supports a given delivery method.
+    pub async fn supports_delivery_method(
+        &self,
+        issuer: &str,
+        method_urn: &str,
+    ) -> Result<bool, Error> {
+        todo!()
+    }
+
+    /// Return the list of event type URIs the transmitter supports, if advertised.
+    pub async fn supported_events(&self, issuer: &str) -> Result<Option<Vec<String>>, Error> {
+        todo!()
+    }
+
+    /// Create a new event stream (POST, SSF §8.1.1).
+    ///
+    /// The `token` is a Bearer token for authenticating with the transmitter.
+    /// Tokens are accepted per-call to support short-lived / rotating OAuth2
+    /// credentials without requiring interior mutability in the client.
+    pub async fn create_stream(
+        &self,
+        issuer: &str,
+        token: &str,
+        config: &StreamConfiguration,
+    ) -> Result<StreamConfiguration, Error> {
+        todo!()
+    }
+
+    /// Read a stream's configuration by ID (GET, SSF §8.1.1).
+    pub async fn get_stream(
+        &self,
+        issuer: &str,
+        token: &str,
+        stream_id: &str,
+    ) -> Result<StreamConfiguration, Error> {
+        todo!()
+    }
+
+    /// Fully replace a stream's configuration (PUT, SSF §8.1.1).
+    ///
+    /// Replaces the entire configuration. For partial updates, use
+    /// [`update_stream`](Self::update_stream) instead.
+    pub async fn replace_stream(
+        &self,
+        issuer: &str,
+        token: &str,
+        config: &StreamConfiguration,
+    ) -> Result<StreamConfiguration, Error> {
+        todo!()
+    }
+
+    /// Partially update a stream's configuration (PATCH, SSF §8.1.1).
+    ///
+    /// Merges the provided fields into the existing configuration. For a
+    /// full replacement, use [`replace_stream`](Self::replace_stream) instead.
+    pub async fn update_stream(
+        &self,
+        issuer: &str,
+        token: &str,
+        config: &StreamConfiguration,
+    ) -> Result<StreamConfiguration, Error> {
+        todo!()
+    }
+
+    /// Delete a stream (DELETE, SSF §8.1.1).
+    pub async fn delete_stream(
+        &self,
+        issuer: &str,
+        token: &str,
+        stream_id: &str,
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
+    /// List all streams for this receiver (GET, SSF §8.1.1).
+    pub async fn list_streams(
+        &self,
+        issuer: &str,
+        token: &str,
+    ) -> Result<Vec<StreamConfiguration>, Error> {
+        todo!()
+    }
+
+    /// Read a stream's current status (GET, SSF §8.1.2).
+    pub async fn get_stream_status(
+        &self,
+        issuer: &str,
+        token: &str,
+        stream_id: &str,
+    ) -> Result<StreamStatusResponse, Error> {
+        todo!()
+    }
+
+    /// Update a stream's status (PATCH, SSF §8.1.2).
+    pub async fn update_stream_status(
+        &self,
+        issuer: &str,
+        token: &str,
+        stream_id: &str,
+        update: &StreamStatusUpdate,
+    ) -> Result<StreamStatusResponse, Error> {
+        todo!()
+    }
+
+    /// Add a subject to a stream (POST, SSF §8.1.3).
+    pub async fn add_subject(
+        &self,
+        issuer: &str,
+        token: &str,
+        request: &AddSubjectRequest,
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
+    /// Remove a subject from a stream (POST, SSF §8.1.3).
+    pub async fn remove_subject(
+        &self,
+        issuer: &str,
+        token: &str,
+        request: &RemoveSubjectRequest,
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
+    /// Request a verification event on a stream (POST, SSF §8.1.4).
+    pub async fn verify_stream(
+        &self,
+        issuer: &str,
+        token: &str,
+        request: &VerificationRequest,
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
+    /// Poll for queued SETs from the transmitter (POST, RFC 8936 §2).
+    pub async fn poll(
+        &self,
+        endpoint_url: &str,
+        token: &str,
+        request: &PollRequest,
+    ) -> Result<PollResponse, Error> {
+        todo!()
+    }
+
+    /// Parse and validate a push-delivered SET (RFC 8935).
+    ///
+    /// Deserializes the raw body into a [`SecurityEventToken`] and validates
+    /// that the `iss` and `aud` claims match the expected values.
+    pub fn parse_push_set(
+        &self,
+        body: &[u8],
+        expected_issuer: &str,
+        expected_audience: &str,
+    ) -> Result<SecurityEventToken, Error> {
+        todo!()
+    }
+
+    /// Normalize and validate an issuer URL per SSF §7.2.
+    fn validate_issuer_url(issuer: &str) -> Result<url::Url, Error> {
+        todo!()
+    }
+
+    fn build_discovery_url(issuer: &str) -> Result<String, Error> {
+        todo!()
+    }
+
+    fn validate_issuer_match(
+        expected: &str,
+        config: &TransmitterConfiguration,
+    ) -> Result<(), Error> {
+        todo!()
+    }
+
     /// Resolve a transmitter endpoint URL from cached config.
-    pub(crate) async fn resolve_endpoint(
+    async fn resolve_endpoint(
         &self,
         issuer: &str,
         extract: fn(&TransmitterConfiguration) -> Option<&String>,
@@ -50,7 +248,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Build a URL with optional query parameters.
-    pub(crate) fn url_with_params(base: &str, params: &[(&str, &str)]) -> Result<String, Error> {
+    fn url_with_params(base: &str, params: &[(&str, &str)]) -> Result<String, Error> {
         if params.is_empty() {
             return Ok(base.to_owned());
         }
@@ -68,7 +266,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Make an authenticated HTTP request and return the raw response.
-    pub(crate) async fn authenticated_request(
+    async fn authenticated_request(
         &self,
         method: Method,
         url: &str,
@@ -91,7 +289,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Unauthenticated GET for discovery.
-    pub(crate) async fn unauthenticated_get(&self, url: &str) -> Result<HttpResponse, Error> {
+    async fn unauthenticated_get(&self, url: &str) -> Result<HttpResponse, Error> {
         let resp = self.http.request(Method::Get, url, &[], None).await?;
 
         if resp.status >= 400 {
@@ -105,7 +303,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated GET, deserialize JSON response.
-    pub(crate) async fn get_json<T: DeserializeOwned>(
+    async fn get_json<T: DeserializeOwned>(
         &self,
         url: &str,
         token: &str,
@@ -115,7 +313,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated POST with JSON body, deserialize JSON response.
-    pub(crate) async fn post_json<T: DeserializeOwned, B: Serialize>(
+    async fn post_json<T: DeserializeOwned, B: Serialize>(
         &self,
         url: &str,
         token: &str,
@@ -127,7 +325,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated PATCH with JSON body, deserialize JSON response.
-    pub(crate) async fn patch_json<T: DeserializeOwned, B: Serialize>(
+    async fn patch_json<T: DeserializeOwned, B: Serialize>(
         &self,
         url: &str,
         token: &str,
@@ -139,7 +337,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated PUT with JSON body, deserialize JSON response.
-    pub(crate) async fn put_json<T: DeserializeOwned, B: Serialize>(
+    async fn put_json<T: DeserializeOwned, B: Serialize>(
         &self,
         url: &str,
         token: &str,
@@ -151,7 +349,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated POST with JSON body, expect no meaningful response body.
-    pub(crate) async fn post_empty<B: Serialize>(
+    async fn post_empty<B: Serialize>(
         &self,
         url: &str,
         token: &str,
@@ -163,7 +361,7 @@ impl<C: HttpClient> SsfClient<C> {
     }
 
     /// Authenticated DELETE, expect no meaningful response body.
-    pub(crate) async fn delete_empty(&self, url: &str, token: &str) -> Result<(), Error> {
+    async fn delete_empty(&self, url: &str, token: &str) -> Result<(), Error> {
         self.authenticated_request(Method::Delete, url, token, None).await?;
         Ok(())
     }

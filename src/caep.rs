@@ -33,6 +33,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+use crate::Error;
 pub use crate::subject::CredentialType;
 
 /// Fields shared by all CAEP events ([CAEP §2]).
@@ -404,16 +405,20 @@ impl CaepEvent {
     ///
     /// The returned value is placed under this event's [`uri`](CaepEvent::uri) key
     /// in the SET `events` object.
-    pub fn to_payload(&self) -> Result<serde_json::Value, crate::error::Error> {
+    pub fn to_payload(&self) -> Result<serde_json::Value, Error> {
         let value = match self {
-            Self::SessionRevoked(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
-            Self::CredentialChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
-            Self::TokenClaimsChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
-            Self::DeviceComplianceChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
-            Self::AssuranceLevelChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
-            Self::RiskLevelChange(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
-            Self::SessionEstablished(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
-            Self::SessionPresented(e) => serde_json::to_value(e).map_err(crate::error::Error::Serialization)?,
+            Self::SessionRevoked(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::CredentialChange(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::TokenClaimsChange(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::DeviceComplianceChange(e) => {
+                serde_json::to_value(e).map_err(Error::Serialization)?
+            }
+            Self::AssuranceLevelChange(e) => {
+                serde_json::to_value(e).map_err(Error::Serialization)?
+            }
+            Self::RiskLevelChange(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::SessionEstablished(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
+            Self::SessionPresented(e) => serde_json::to_value(e).map_err(Error::Serialization)?,
         };
         Ok(value)
     }

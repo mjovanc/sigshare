@@ -46,6 +46,7 @@
 //! - [`risc`] — RISC 1.0 event types (account, identifier, recovery, opt-in/out)
 //! - [`ssf`] — Stream management, delivery config, poll/push, transmitter metadata
 //! - [`subject`] — Subject identifier formats per RFC 9493 and SSF 1.0
+//! - [`client`] — SSF client for discovery, stream management, and delivery
 //! - [`error`] — Error types
 //!
 //! [ssf]: https://openid.net/specs/openid-sharedsignals-framework-1_0.html
@@ -57,14 +58,11 @@
 mod cache;
 pub mod caep;
 pub mod client;
-mod delivery;
-mod discovery;
 pub mod error;
 pub mod http;
 pub mod risc;
 pub mod set;
 pub mod ssf;
-mod stream;
 pub mod subject;
 
 pub use caep::CaepEvent;
